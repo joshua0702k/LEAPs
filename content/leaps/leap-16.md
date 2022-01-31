@@ -118,7 +118,7 @@ Similarly with deposits, the pool tracks total number of LP tokens that have sig
 In particular, when an individual user signals the withdrawal of \\(y\\) LP tokens, a record is added to a withdrawal queue, \\(Y\\) is incremented by \\(y\\), and those LP tokens are burned.
 After the signalling time, the withdrawal can be processed from the queue if there are no unprocessed withdrawals ahead of it. Upon processing, \\(Y\\) is decremented by \\(y\\) and the user receives a value \\(v\\) sUSD from the reserved sUSD, where:
     \\[v = \omega \times y \times (1 - \phi)\\]
-To prevent attacks and protect continuing LPs, a small fee of \\(\phi = 0.1\%\\) is charged on all withdrawals. This fee is added back into to the pool to benefit continuing LPs. When there are no listed boards (such as when migration to V2 occurs) the fee will be set to \\(\phi = 0\\). The withdrawal fee \\(\phi\\) can be adjusted based on Council votes.
+To prevent attacks and protect continuing LPs, a small fee of \\(\phi = 0.001\\) is charged on all withdrawals. This fee is added back into to the pool to benefit continuing LPs. When there are no listed boards (such as when migration to V2 occurs) the fee will be set to \\(\phi = 0\\). The withdrawal fee \\(\phi\\) can be adjusted based on Council votes.
 
 Note that if there are insufficient funds free to process outstanding withdrawals, then all users will wait for open contracts to close or for existing boards to be liquidated. This will free up liquidity that will be immediately set aside for queued withdrawals.
 
