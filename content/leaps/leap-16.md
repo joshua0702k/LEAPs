@@ -20,7 +20,7 @@ This is a proposal to abolish the rounds systems currently in place in V1.1. In 
 ##  Motivation
 <!--This is the problem statement. This is the *why* of the LEAP. It should clearly explain *why* the current state of the protocol is inadequate.  It is critical that you explain *why* the change is needed, if the LEAP proposes changing how something is calculated, you must address *why* the current calculation is innaccurate or wrong. This is not the place to describe how the LEAP will address the issue!-->
 There are three objectives with this LEAP:
-- More efficient usage of LP funds: In V1, towards the end of a round there is a disproportionate amount of liquidity allocated for a single expiry. This is unacceptably capital inefficient.
+- More efficient usage of LP funds: In V1, towards the end of a round there is a disproportionate amount of liquidity allocated for a single expiry. This is unacceptably inefficient with capital.
 - Improved user experience for LPs: The current system of locking liquidity for an entire round may discourage prospective users from depositing funds. Users will now also be able to lock their funds in the pool for an indefinite period of time for potentially greater returns and less active fund management.
 - More flexible option expiries for a deeper trading experience.
 
@@ -79,7 +79,7 @@ Let the trading liquidity \\(L\\) denote the amount of sUSD available for tradin
 
 There are 3 other components needed to determine to the net value (NAV) of the pool:
 
-1. Locked short collateral \\((LSC)\\): The amount of sUSD and the sUSD-denominated amount of synth underlyings (sETH, sBTC, etc) used to collateralize the AMM’s short positions. When the AMM shorts an option, the required collateral is subtracted from the free liquidity and added to \\(LSC\\).
+1. Locked short collateral \\((LSC)\\): The amount of sUSD and the sUSD-denominated amount of synth underlyings (sETH, sBTC, etc) used to collateralize the AMM’s short positions. When the AMM shorts an option, the required collateral is subtracted from the trading liquidity and added to \\(LSC\\).
 2. \\(O_L\\): The mark-to-market value of the options the pool is long using the GWAV values of the volatility. This is a sum of the AMM's positions over all listings of this asset using the GWAV values of the skews and baseline volatilities. Suppose the pool has \\(n_T\\) expiries and \\(n_K\\) strikes. Let \\(S\\) be the spot price of the asset, \\(r=0\\) the risk free rate, \\(K_i\\) the \\(i^{\text{th}}\\) strike and \\(T_j\\) the \\(j^\text{th}\\) expiry. Then we define \\(O_L\\) as \\[O_{L} = \sum_{j=1}^{n_{T}}\sum_{i=1}^{n_{K}}\left[n_{i,j}^{(\text{long call})}C(\sigma_{i,j}^{GWAV},K_{i},S,r,T_{j})+n_{i,j}^{(\text{long put})}P(\sigma_{i,j}^{GWAV},K_{i},S,r,T_{j})\right]\\] where \\(n_{i,j}^{(\text{long call/put})}\\) is the number of long calls/puts the AMM owns of this listing, \\(\sigma_{i,j}^{(GWAV)} = b_{j}^{(GWAV)} \times R_{(i,j)}^{(GWAV)}\\) is the GWAV trading volatility and \\(C\\), \\(P\\) are the Black Scholes prices of the call/put options using the given parameters
 3. \\(O_S\\): the mark-to-market value of the options the pool is short. This is defined in the same way as \\(O_L\\) except the sum is taken over all short positions the AMM holds.
 
