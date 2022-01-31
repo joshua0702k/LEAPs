@@ -51,7 +51,7 @@ TBA
 
 #### Geometric Time-Weighted Average Volatility
 
-Lyra is an automated market maker (AMM) for volatility trading. Since the pool's value is a function of its options positions, every trade on the platform directly affects the value of each LP's share. A consequence of this is the possibility of a "dilution/concentration" attack. This is where an attacker manipulates the AMM's listed volatilities to artificially increase their share of the pool. This hurts continuing LPs since the value of their share decreases. A solution to this kind of problem has already been implemented widely in DeFi, namely the concept of a geometric time weighted average volatility or GWAV. Our implementation of a GWAV is heavily inspired by the work of Euler and Uniswap **(TODO: LINKS)**.
+Lyra is an automated market maker (AMM) for volatility trading. Since the pool's value is a function of its options positions, every trade on the platform directly affects the value of each LP's share. A consequence of this is the possibility of a "dilution/concentration" attack. This is where an attacker manipulates the AMM's listed volatilities to artificially increase their share of the pool. This hurts continuing LPs since the value of their share decreases. A solution to this kind of problem has already been implemented widely in DeFi, namely the concept of a geometric time weighted average volatility or GWAV. Our implementation of a GWAV is heavily inspired by the work of [Euler](https://github.com/euler-xyz/uni-v3-twap-manipulation) and [Uniswap V3](https://uniswap.org/whitepaper-v3.pdf).
 
 A GWAV is a time weighted moving average of a particular quantity. In Lyra, these quantities would be the skew ratios and baseline volatilities for each listing. The benefit of using a GWAV is that it smooths out large movements in the measured quantity, meaning such attacks become almost impossible to perform.
 
@@ -118,7 +118,7 @@ Similarly with deposits, the pool tracks total number of LP tokens that have sig
 In particular, when an individual user signals the withdrawal of \\(y\\) LP tokens, a record is added to a withdrawal queue, \\(Y\\) is incremented by \\(y\\), and those LP tokens are burned.
 After the signalling time, the withdrawal can be processed from the queue if there are no unprocessed withdrawals ahead of it. Upon processing, \\(Y\\) is decremented by \\(y\\) and the user receives a value \\(v\\) sUSD from the reserved sUSD, where:
     \\[v = \omega \times y \times (1 - \phi)\\]
-To prevent attacks and protect continuing LPs, a small fee of \\(\phi = 0.001\\) is charged on all withdrawals. This fee is added back into to the pool to benefit continuing LPs. When there are no listed boards (such as when migration to V2 occurs) the fee will be set to \\(\phi = 0\\). The withdrawal fee \\(\phi\\) can be adjusted based on Council votes.
+To prevent attacks and protect continuing LPs, a small fee of \\(\phi = 0.001\\) (i.e. 0.1%) is charged on all withdrawals. This fee is added back into to the pool to benefit continuing LPs. When there are no listed boards (such as when migration to V2 occurs) the fee will be set to \\(\phi = 0\\). The withdrawal fee \\(\phi\\) can be adjusted based on Council votes.
 
 Note that if there are insufficient funds free to process outstanding withdrawals, then all users will wait for open contracts to close or for existing boards to be liquidated. This will free up liquidity that will be immediately set aside for queued withdrawals.
 
@@ -128,13 +128,11 @@ It is important to ensure the pool always has sufficient free liquidity to trade
 
 Motivated by this, we implement a liquidity circuit breaker that prevents all deposits and withdrawals if the trading liquidity falls below a critical threshold. The minimum liquidity \\(M\\) is defined as
 \\[M = m \times \Omega\\]
-where \\(m\\) is a parameter tuned for each pool. For instance, \\(m\\) could be \\(2\%\\) for the ETH pool.
+where \\(m\\) is a parameter tuned for each pool. For instance, \\(m\\) could be 2% for the ETH pool.
 
 When \\(L < M\\) the liquidity circuit breaker will fire and all deposits and withdrawals will be blocked. The circuit breaker will continue to fire until \\(L \ge M\\). A countdown timer of \\(\tau_{liq} = 3\\) days then begins, during which deposits and withdrawals will continue to be blocked. After this period, deposits and withdrawals will recommence.
 
-To ensure that the circuit breaker does not lock LP funds indefinitely, approved "guardians" (a multisig consisting of core contributors and Council members) can bypass the liquidity circuit breaker if a deposit/withdrawal has been signalled for at least \\(G = 14\\) days. In these circumstances, guardians can also block new boards from being listed until more funds are freed.
-
-A withdrawal that has signalled for at least \\(\mathcal{\ell}=14\\) days can be approved by a "guardian" (member of the council/LYRA core contributor). Guardians have the ability to bypass the circuit breaker and approve deposits/withdrawals which have been signalled for at least 14 days. and/or block new expiries from being listed until funds are freed.
+A deposit/withdrawal that has signalled for at least \\(G=14\\) days can be approved by a "guardian" (a multisig consisting of core contributors and Council members). Guardians have the ability to bypass the circuit breaker and approve deposits/withdrawals which have been signalled for at least \\(G\\) days and/or block new expiries from being listed until funds are freed.
 
 If a user is meant to have their funds processed while deposits/withdrawals are blocked, then these transactions can occur immediately after the embargo lifts.
 
@@ -162,7 +160,7 @@ Guardians have the ability to bypass the liquidity and/or volatility circuit bre
 
 As mentioned earlier, Avalon seeks to improve the trading experience of users by offering a much larger set of expiries, namely 1, 2, 3, 4, 6, 8 and 12 weeks. Every two weeks new 3 and 12 week boards will be added to maintain this structure.
 
-Each board will have a maximum usage (measured as a percentage of the NAV (\\(\Omega\\))) that increases as the time to expiry approaches 0. For instance, boards with less than a week to expiry will be able to use up to 100\% of the pool’s NAV. That is, up to 100\% of the pool's NAV can be used to buy and/or collateralise options with this expiry. This does not include the costs/collateral needed for delta hedging. Boards with 2 weeks or less to expiry will be capped at 80\% and so forth. This decay continues up to 12 week expiries which will be capped at 10\%. These percentages are preliminary values and will be set after further community discussion.
+Each board will have a maximum usage (measured as a percentage of the NAV) that increases as the time to expiry approaches 0. For instance, boards with less than a week to expiry will be able to use up to 100\% of the pool’s NAV. That is, up to 100\% of the pool's NAV can be used to buy and/or collateralise options with this expiry. This does not include the costs/collateral needed for delta hedging. Boards with 2 weeks or less to expiry will be capped at 80\% and so forth. This decay continues up to 12 week expiries which will be capped at 10\%. These percentages are preliminary values and will be set after further community discussion.
 
 
 ### Configurable Values
