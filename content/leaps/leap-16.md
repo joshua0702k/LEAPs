@@ -80,7 +80,7 @@ Let the trading liquidity \\(L\\) denote the amount of sUSD available for tradin
 There are 3 other components needed to determine to the net value (NAV) of the pool:
 
 1. Locked short collateral \\((LSC)\\): The amount of sUSD and the sUSD-denominated amount of synth underlyings (sETH, sBTC, etc) used to collateralize the AMM’s short positions. When the AMM shorts an option, the required collateral is subtracted from the free liquidity and added to \\(LSC\\).
-2. \\(O_L\\): The mark-to-market value of the options the pool is long using the GWAV values of the volatility. This is a sum of the AMM's positions over all listings of this asset using the GWAV values of the skews and baseline volatilities. Suppose the pool has \\(n_T\\) expiries and \\(n_K\\) strikes. Let \\(S\\) be the spot price of the asset, \\(r=0\\) the risk free rate, \\(K_i\\) the \\(i^{\text{th}}\\) strike and \\(T_j\\) the \\(j^\text{th}\\) expiry. Then we define \\(O_L\\) as \\[O_{L} = \sum_{j=1}^{n_{T}}\sum_{i=1}^{n_{K}}\left[n_{i,j}^{(\text{long call})}C(\sigma_{i,j}^{GWAV},K_{i},S,r,T_{j})+n_{i,j}^{(\text{long put})}P(\sigma_{i,j}^{GWAV},K_{i},S,rT_{j})\right]\\] where \\(n_{i,j}^{(\text{long call/put})}\\) is the number of long calls/puts the AMM owns of this listing, \\(\sigma_{i,j}^{(GWAV)} = b_{j}^{(GWAV)} \times R_{(i,j)}^{(GWAV)}\\) is the GWAV trading volatility and \\(C\\), \\(P\\) are the Black Scholes prices of the call/put options using the given parameters
+2. \\(O_L\\): The mark-to-market value of the options the pool is long using the GWAV values of the volatility. This is a sum of the AMM's positions over all listings of this asset using the GWAV values of the skews and baseline volatilities. Suppose the pool has \\(n_T\\) expiries and \\(n_K\\) strikes. Let \\(S\\) be the spot price of the asset, \\(r=0\\) the risk free rate, \\(K_i\\) the \\(i^{\text{th}}\\) strike and \\(T_j\\) the \\(j^\text{th}\\) expiry. Then we define \\(O_L\\) as \\[O_{L} = \sum_{j=1}^{n_{T}}\sum_{i=1}^{n_{K}}\left[n_{i,j}^{(\text{long call})}C(\sigma_{i,j}^{GWAV},K_{i},S,r,T_{j})+n_{i,j}^{(\text{long put})}P(\sigma_{i,j}^{GWAV},K_{i},S,r,T_{j})\right]\\] where \\(n_{i,j}^{(\text{long call/put})}\\) is the number of long calls/puts the AMM owns of this listing, \\(\sigma_{i,j}^{(GWAV)} = b_{j}^{(GWAV)} \times R_{(i,j)}^{(GWAV)}\\) is the GWAV trading volatility and \\(C\\), \\(P\\) are the Black Scholes prices of the call/put options using the given parameters
 3. \\(O_S\\): the mark-to-market value of the options the pool is short. This is defined in the same way as \\(O_L\\) except the sum is taken over all short positions the AMM holds.
 
 We define the net asset value (NAV) of the pool \\(\Omega\\) as:
@@ -129,12 +129,6 @@ It is important to ensure the pool always has sufficient free liquidity to trade
 Motivated by this, we implement a liquidity circuit breaker that prevents all deposits and withdrawals if the trading liquidity falls below a critical threshold. The minimum liquidity \\(M\\) is defined as
 \\[M = m \times \Omega\\]
 where \\(m\\) is a parameter tuned for each pool. For instance, \\(m\\) could be \\(2\%\\) for the ETH pool.
-
-To do this, the protocol will store the value of \\(NSV\\), the net value of the short collateral it has locked. Specifically, we have
-\\[
-NSV = \sum_{i}N_{i}^{(call)}S+\sum_{j}N_{j}^{(put)}K_{j}
-\\]
-where each sum is taken over all listings, \\(S\\) is the spot price via a ChainLink oracle, \\(N_{j}^{(put)}\\) is the number of contracts of the \\(j^{th}\\) listing the pool is short and \\(K_{j}\\) is the \\(j^{th}\\) strike.
 
 When \\(L < M\\) the liquidity circuit breaker will fire and all deposits and withdrawals will be blocked. The circuit breaker will continue to fire until \\(L \ge M\\). A countdown timer of \\(\tau_{liq} = 3\\) days then begins, during which deposits and withdrawals will continue to be blocked. After this period, deposits and withdrawals will recommence.
 
